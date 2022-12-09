@@ -23,7 +23,7 @@ HOMEWORK_VERDICTS = {
 
 # Здесь задана глобальная конфигурация для логирования
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     filename='program.log',
     format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
     filemode='w'
@@ -54,6 +54,10 @@ class WrongResponseCode(Exception):
     pass
 
 
+class OutCustomException(Exception):
+    pass
+
+
 def get_api_answer(timestamp):
     """Делает запрос к единственному эндпоинту API-сервиса."""
     payload = {'from_date': timestamp}
@@ -64,6 +68,7 @@ def get_api_answer(timestamp):
         homework_statuses = homework_statuses.json()
         return homework_statuses
     except Exception as error:
+        print(error)
         logging.exception(f'Ошибка при запросе к основному API: {error}')
 
 
@@ -82,13 +87,20 @@ def parse_status(homework):
     """Извлекаем из информации о конкретной домашней работе статус этой работы.
     Далее функция возвращает подготовленную для отправки в Telegram строку,
     содержащую один из вердиктов словаря HOMEWORK_VERDICTS."""
-    homework_status = homework[0].get('status')
-    homework_name = homework[0].get('homework_name')
-    verdict = HOMEWORK_VERDICTS[homework_status]
-    for key in HOMEWORK_VERDICTS:
-        if key == homework_status:
-            return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    try:
+        # logger.info("Начали что-то делать")
+        homework_status = homework[0].get('status')
+        homework_name = homework[0].get('homework_name')
+        verdict = HOMEWORK_VERDICTS[homework_status]
+        for key in HOMEWORK_VERDICTS:
+            if key == homework_status:
+                return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    except Exception as error:
+        message = f'Сбой в работе программы: {error}'
+        print(message)
         # logging.error('Неожиданный статус домашней работы, обнаруженный в ответе API')
+        raise OutCustomException("Произошла чудовищная ошибка!")
+
 
 
 def main():
@@ -110,6 +122,12 @@ def main():
                 # Бот будет работать до тех пор, пока не нажмете Ctrl-C
                 updater.idle()
                 time.sleep(RETRY_PERIOD)
+        # except OurCustomException as error:
+        #     logger.error(f'Поломалось что-то такое {error}'
+        # except OurOtherCustomException as error:
+        #     logger.error(f'Поломалось что-то другое {error}'
+        # except Exception as error:
+        #     logger.error(f'Поломалось что-то новенькое {error}'
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
