@@ -98,12 +98,11 @@ def parse_status(homework):
         homework_status = homework.get('status')
         homework_name = homework.get('homework_name')
         verdict = HOMEWORK_VERDICTS[homework_status]
+        resp = f'Изменился статус проверки работы "{homework_name}". {verdict}'
         for key in HOMEWORK_VERDICTS:
             if key == homework_status:
-                logger.info(f'Изменился статус проверки работы'
-                            f' {homework_name}. {verdict}')
-                return (f'Изменился статус проверки работы'
-                        f' {homework_name}. {verdict}')
+                logger.info(resp)
+                return resp
     except Exception as error:
         message = f'Сбой в работе программы: {error}'
         logger.error('Неожиданный статус домашней работы в ответе API')
