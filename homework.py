@@ -1,4 +1,4 @@
-"""Проверка домашки"""
+"""Проверка домашки."""
 import os
 import sys
 import requests
@@ -36,8 +36,8 @@ logger.addHandler(handler)
 
 def check_tokens():
     """Проверяем доступность переменных окружения,
-    которые необходимы для работы программы."""
-
+    которые необходимы для работы программы.
+    """
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -88,7 +88,8 @@ def check_response(response):
 def parse_status(homework):
     """Извлекаем из информации о конкретной домашней работе статус этой работы.
     Далее функция возвращает подготовленную для отправки в Telegram строку,
-    содержащую один из вердиктов словаря HOMEWORK_VERDICTS."""
+    содержащую один из вердиктов словаря HOMEWORK_VERDICTS.
+    """
     try:
         if 'homework_name' not in homework:
             logger.error('В response нет ключа homework_name')
