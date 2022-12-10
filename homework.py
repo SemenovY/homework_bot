@@ -1,3 +1,4 @@
+"""Проверка домашки"""
 import os
 import sys
 import requests
@@ -34,7 +35,8 @@ logger.addHandler(handler)
 
 
 def check_tokens():
-    """Проверяем доступность переменных окружения, которые необходимы для работы программы."""
+    """Проверяем доступность переменных окружения,
+    которые необходимы для работы программы."""
 
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
@@ -64,7 +66,7 @@ def get_api_answer(timestamp):
         return response.json()
     except Exception as errors:
         logger.error(f'Ошибка при запросе к основному API: {errors}')
-        raise WrongResponseCode(f'Ошибка при запросе к основному API: {errors}')
+        raise WrongResponseCode(f'Ошибка при запросе к API: {errors}')
 
 
 def check_response(response):
@@ -99,12 +101,14 @@ def parse_status(homework):
         verdict = HOMEWORK_VERDICTS[homework_status]
         for key in HOMEWORK_VERDICTS:
             if key == homework_status:
-                logger.info(f'Изменился статус проверки работы "{homework_name}". {verdict}')
-                return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+                logger.info(f'Изменился статус проверки работы'
+                            f'{homework_name}. {verdict}')
+                return (f'Изменился статус проверки работы'
+                        f'{homework_name}. {verdict}')
     except Exception as error:
         message = f'Сбой в работе программы: {error}'
-        logger.error('Неожиданный статус домашней работы, обнаруженный в ответе API')
-        raise OutCustomException(f'Неожиданный статус домашней работы, обнаруженный в ответе API {message}')
+        logger.error('Неожиданный статус домашней работы в ответе API')
+        raise OutCustomException(f'Неожиданный статус работы в API {message}')
 
 
 def main():
