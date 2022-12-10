@@ -101,9 +101,9 @@ def parse_status(homework):
         for key in HOMEWORK_VERDICTS:
             if key == homework_status:
                 logger.info(f'Изменился статус проверки работы'
-                            f'{homework_name}. {verdict}')
+                            f' {homework_name}. {verdict}')
                 return (f'Изменился статус проверки работы'
-                        f'{homework_name}. {verdict}')
+                        f' {homework_name}. {verdict}')
     except Exception as error:
         message = f'Сбой в работе программы: {error}'
         logger.error('Неожиданный статус домашней работы в ответе API')
@@ -118,6 +118,7 @@ def main():
         sys.exit()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
+    timestamp = 0
     while True:
         try:
             response = get_api_answer(timestamp)
