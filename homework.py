@@ -1,21 +1,24 @@
 """Проверка домашки."""
+import logging
 import os
 import sys
+import time
+from http import HTTPStatus
+
 import requests
 import telegram
-import time
-import logging
 from dotenv import load_dotenv
-from http import HTTPStatus
-from exceptions import WrongResponseCode, OutCustomException
+
+from exceptions import OutCustomException, WrongResponseCode
 
 load_dotenv()
 
-PRACTICUM_TOKEN = os.getenv('TOKEN_PRACTICUM')
 TELEGRAM_TOKEN = os.getenv('TOKEN_TELEGRAM')
 TELEGRAM_CHAT_ID = os.getenv('CHAT_ID_TELEGRAM')
+PRACTICUM_TOKEN = os.getenv('TOKEN_PRACTICUM')
 RETRY_PERIOD = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+ENDPOINT = \
+    'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
@@ -28,7 +31,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
 formatter = logging.Formatter(
-    '%(asctime)s, %(levelname)s, %(message)s'
+    '%(asctime)s, %(levelname)s, %(funcName)s, %(lineno)d, %(message)s'
 )
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -36,6 +39,15 @@ logger.addHandler(handler)
 
 def check_tokens():
     """Проверяем доступность переменных окружения."""
+    not_tokens = []
+    for item in ('PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID'):
+        if not globals()[item]:
+            not_tokens.append(item)
+    error_message = ', '.join(not_tokens)
+    if error_message:
+        logger.critical(f'Отсутствует обязательная переменная '
+                        f'окружения: {error_message}', exc_info=True)
+        return False
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
@@ -54,7 +66,9 @@ def get_api_answer(timestamp):
     """Делает запрос к единственному эндпоинту API-сервиса."""
     payload = {'from_date': timestamp}
     try:
-        response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
+        response = requests.get(
+            ENDPOINT, headers=HEADERS, params=payload
+        )
         if response.status_code != HTTPStatus.OK:
             logger.error(f'Ответ API не возвращает {HTTPStatus.OK}')
             error = (f'Эндпоинт {ENDPOINT} недоступен.'
@@ -99,10 +113,14 @@ def parse_status(homework):
         homework_name = homework.get('homework_name')
         verdict = HOMEWORK_VERDICTS[homework_status]
         resp = f'Изменился статус проверки работы "{homework_name}". {verdict}'
+        keys = ['approved', 'reviewing', 'rejected']
         for key in HOMEWORK_VERDICTS:
+            if key not in keys:
+                raise KeyError(f'В response нет ключа {key}')
             if key == homework_status:
                 logger.info(resp)
                 return resp
+
     except Exception as error:
         message = f'Сбой в работе программы: {error}'
         logger.error('Неожиданный статус домашней работы в ответе API')
@@ -112,8 +130,6 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        message = 'Отсутствуют переменные окружения!'
-        logger.critical(message)
         sys.exit()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
