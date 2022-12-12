@@ -17,8 +17,7 @@ TELEGRAM_TOKEN = os.getenv('TOKEN_TELEGRAM')
 TELEGRAM_CHAT_ID = os.getenv('CHAT_ID_TELEGRAM')
 PRACTICUM_TOKEN = os.getenv('TOKEN_PRACTICUM')
 RETRY_PERIOD = 600
-ENDPOINT = \
-    'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
@@ -70,7 +69,6 @@ def get_api_answer(timestamp):
             ENDPOINT, headers=HEADERS, params=payload
         )
         if response.status_code != HTTPStatus.OK:
-            logger.error(f'Ответ API не возвращает {HTTPStatus.OK}')
             error = (f'Эндпоинт {ENDPOINT} недоступен.'
                      f'Код ответа API: {response.status_code}'
                      )
@@ -86,15 +84,19 @@ def check_response(response):
     if not isinstance(response, dict):
         logger.error('в ответе API не словарь')
         raise TypeError('В ответе API не словарь')
-    if 'homeworks' not in response or 'current_date' not in response:
-        logger.error('список домашних работ пуст')
-        raise KeyError('В response нет ключа homeworks')
+    if 'homeworks' not in response:
+        logger.error('список домашних работ пуст, '
+                     'в response нет ключа homeworks', exc_info=True)
+        raise KeyError('В response нет ключа homeworks ')
+    if 'current_date' not in response:
+        logger.error('список домашних работ пуст, '
+                     'в response нет ключа current_date', exc_info=True)
+        raise KeyError('В response нет ключа current_date')
     if not isinstance(response['homeworks'], list):
         logger.error('в словаре не список')
         raise TypeError('В словаре не список')
 
-    if response.get('homeworks'):
-        return response
+    return response
 
 
 def parse_status(homework):
@@ -109,15 +111,16 @@ def parse_status(homework):
         if 'status' not in homework:
             logger.error('В response нет ключа status')
             raise KeyError('В response нет ключа status')
-        homework_status = homework.get('status')
-        homework_name = homework.get('homework_name')
-        verdict = HOMEWORK_VERDICTS[homework_status]
-        resp = f'Изменился статус проверки работы "{homework_name}". {verdict}'
+
+        resp = (f'Изменился статус проверки работы '
+                f'"{homework.get("homework_name")}". '
+                f'{HOMEWORK_VERDICTS[homework.get("status")]}'
+                )
         keys = ['approved', 'reviewing', 'rejected']
         for key in HOMEWORK_VERDICTS:
             if key not in keys:
                 raise KeyError(f'В response нет ключа {key}')
-            if key == homework_status:
+            if key == homework.get('status'):
                 logger.info(resp)
                 return resp
 
@@ -130,7 +133,7 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        sys.exit()
+        sys.exit(1)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
     while True:
@@ -149,7 +152,7 @@ def main():
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logger.error(message, exc_info=True)
+            logger.exception(message)
 
         finally:
             time.sleep(RETRY_PERIOD)
