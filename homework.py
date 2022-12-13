@@ -25,7 +25,6 @@ HOMEWORK_VERDICTS = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
@@ -44,7 +43,7 @@ def check_tokens():
             not_tokens.append(item)
     error_message = ', '.join(not_tokens)
     if error_message:
-        logger.critical(f'Отсутствует обязательная переменная '
+        logger.critical('Отсутствует обязательная переменная '
                         f'окружения: {error_message}', exc_info=True)
         return False
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
@@ -56,7 +55,6 @@ def send_message(bot, message):
         send = bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug('Cообщение в Telegram было отправлено')
         return send
-
     except Exception as errors:
         logger.error(f'Ошибка при отправке сообщения в Telegram: {errors}')
 
@@ -82,20 +80,19 @@ def get_api_answer(timestamp):
 def check_response(response):
     """Проверяем ответ API на соответствие документации."""
     if not isinstance(response, dict):
-        logger.error('в ответе API не словарь')
+        logger.error('В ответе API не словарь')
         raise TypeError('В ответе API не словарь')
     if 'homeworks' not in response:
-        logger.error('список домашних работ пуст, '
+        logger.error('Список домашних работ пуст, '
                      'в response нет ключа homeworks', exc_info=True)
         raise KeyError('В response нет ключа homeworks ')
     if 'current_date' not in response:
-        logger.error('список домашних работ пуст, '
+        logger.error('Список домашних работ пуст, '
                      'в response нет ключа current_date', exc_info=True)
         raise KeyError('В response нет ключа current_date')
     if not isinstance(response['homeworks'], list):
-        logger.error('в словаре не список')
+        logger.error('В словаре не список')
         raise TypeError('В словаре не список')
-
     return response
 
 
@@ -111,14 +108,15 @@ def parse_status(homework):
         if 'status' not in homework:
             logger.error('В response нет ключа status')
             raise KeyError('В response нет ключа status')
+
         if homework['status'] not in HOMEWORK_VERDICTS:
             raise KeyError(f'В response нет ключа {HOMEWORK_VERDICTS}')
-        resp = (f'Изменился статус проверки работы '
-                f'"{homework.get("homework_name")}". '
-                f'{HOMEWORK_VERDICTS[homework.get("status")]}'
+        resp = ('Изменился статус проверки работы '
+                f'"{homework["homework_name"]}". '
+                f'{HOMEWORK_VERDICTS[homework["status"]]}'
                 )
         for key in HOMEWORK_VERDICTS:
-            if key == homework.get('status'):
+            if key == homework['status']:
                 logger.info(resp)
                 return resp
 
