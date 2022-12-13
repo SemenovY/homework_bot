@@ -101,29 +101,21 @@ def parse_status(homework):
     Далее функция возвращает подготовленную для отправки в Telegram строку,
     содержащую один из вердиктов словаря HOMEWORK_VERDICTS.
     """
-    try:
-        if 'homework_name' not in homework:
-            logger.error('В response нет ключа homework_name')
-            raise KeyError('В response нет ключа homework_name')
-        if 'status' not in homework:
-            logger.error('В response нет ключа status')
-            raise KeyError('В response нет ключа status')
-
-        if homework['status'] not in HOMEWORK_VERDICTS:
-            raise KeyError(f'В response нет ключа {HOMEWORK_VERDICTS}')
-        resp = ('Изменился статус проверки работы '
-                f'"{homework["homework_name"]}". '
-                f'{HOMEWORK_VERDICTS[homework["status"]]}'
-                )
-        for key in HOMEWORK_VERDICTS:
-            if key == homework['status']:
-                logger.info(resp)
-                return resp
-
-    except Exception as error:
-        message = f'Сбой в работе программы: {error}'
-        logger.error('Неожиданный статус домашней работы в ответе API')
-        raise OutCustomException(f'Неожиданный статус работы в API {message}')
+    if 'homework_name' not in homework:
+        logger.error('В response нет ключа homework_name')
+        raise KeyError('В response нет ключа homework_name')
+    if 'status' not in homework:
+        logger.error('В response нет ключа status')
+        raise KeyError('В response нет ключа status')
+    if homework['status'] not in HOMEWORK_VERDICTS:
+        raise OutCustomException(f'Неожиданный статус работы '
+                                 f'в API {homework["status"]}')
+    resp = ('Изменился статус проверки работы '
+            f'"{homework["homework_name"]}". '
+            f'{HOMEWORK_VERDICTS[homework["status"]]}'
+            )
+    logger.info(resp)
+    return resp
 
 
 def main():
@@ -149,7 +141,6 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.exception(message)
-
         finally:
             time.sleep(RETRY_PERIOD)
 
