@@ -111,15 +111,13 @@ def parse_status(homework):
         if 'status' not in homework:
             logger.error('В response нет ключа status')
             raise KeyError('В response нет ключа status')
-
+        if homework['status'] not in HOMEWORK_VERDICTS:
+            raise KeyError(f'В response нет ключа {HOMEWORK_VERDICTS}')
         resp = (f'Изменился статус проверки работы '
                 f'"{homework.get("homework_name")}". '
                 f'{HOMEWORK_VERDICTS[homework.get("status")]}'
                 )
-        keys = ['approved', 'reviewing', 'rejected']
         for key in HOMEWORK_VERDICTS:
-            if key not in keys:
-                raise KeyError(f'В response нет ключа {key}')
             if key == homework.get('status'):
                 logger.info(resp)
                 return resp
