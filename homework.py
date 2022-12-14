@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(stream=sys.stdout)
 formatter = logging.Formatter(
-    '%(asctime)s, %(levelname)s, %(funcName)s, %(lineno)d, %(message)s'
+    '%(asctime)s, %(levelname)s, %(funcName)s, %(message)s'
 )
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -107,15 +107,17 @@ def parse_status(homework):
     if 'status' not in homework:
         logger.error('В response нет ключа status')
         raise KeyError('В response нет ключа status')
-    if homework['status'] not in HOMEWORK_VERDICTS:
-        raise OutCustomException(f'Неожиданный статус работы '
-                                 f'в API {homework["status"]}')
-    resp = ('Изменился статус проверки работы '
-            f'"{homework["homework_name"]}". '
-            f'{HOMEWORK_VERDICTS[homework["status"]]}'
-            )
-    logger.info(resp)
-    return resp
+    status = homework['status']
+    if status not in HOMEWORK_VERDICTS:
+        raise OutCustomException('Неожиданный статус работы '
+                                 f'в API {status}'
+                                 )
+    response = ('Изменился статус проверки работы '
+                f'"{homework["homework_name"]}". '
+                f'{HOMEWORK_VERDICTS[status]}'
+                )
+    logger.info(response)
+    return response
 
 
 def main():
