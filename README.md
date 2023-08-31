@@ -5,9 +5,17 @@ ________
 
 ![alt text](https://pictures.s3.yandex.net/resources/Untitled_1668986958.png)
 
+### Технологии
+* Python
+* pytest
+* python-telegram-bot
+* telegram
+* http
+* 
+
 ### Описание
 Telegram-бот, который будет обращаться к API сервиса Практикум.Домашка и узнавать статус вашей домашней работы: взята ли ваша домашка в ревью, проверена ли она, а если проверена — то принял её ревьюер или вернул на доработку.
-### Технологии
+
 Что должен делать бот:
 раз в 10 минут опрашивать API сервиса Практикум.Домашка и проверять статус отправленной на ревью домашней работы;
 при обновлении статуса анализировать ответ API и отправлять вам соответствующее уведомление в Telegram;
@@ -61,7 +69,7 @@ pip install -r requirements.txt
 
 _____________
 ***Над проектом работал:***
-* Семёнов Юрий | GitHub: [SemenovY](https://github.com/SemenovY)| Python developer.
+* Семёнов Юрий | GitHub: [SemenovY](https://github.com/SemenovY) | Python developer.
 
 ### *Free Software, Not for commercial use!*
 ### =^..^=______/
